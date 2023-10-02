@@ -1,0 +1,74 @@
+---
+title: "Minnesota Emergency SNAP Data Story"
+author: "Ben Jaques-Leslie"
+format: 
+   revealjs:
+     theme: [style.scss]
+     show-notes: true #separate-page
+     slide-number: true
+---
+
+revealjs::markdown_renderer {
+  speaker_notes_dir = "speaker_notes"
+}
+
+## March 2020
+
+[![](families-first.png){fig-alt="Families First Coronavirus Response Act text about ESNAP"}](https://www.congress.gov/116/plaws/publ127/PLAW-116publ127.pdf)
+
+::: {.notes}
+I don't need to remind you what was happening in March 2020. I had two kids under 5 running around the house, while my wife and I tried to work and keep everyone safe and happy. 
+:::
+
+## Constraints
+
+-   Old mainframe eligibility system - no way to turn on maximum benefits
+
+-   Limited IT support
+
+## Overview
+
+-   context
+
+    -   early covid
+
+    -   balancing working from home and 2 kiddos
+
+-   Request
+
+    -   For the department - issue maximum snap benefits to all cases regardless on income
+
+-   Constraints
+
+    -   Old mainframe eligibility system - no way to turn on maximum benefits
+
+    -   Limited IT support
+
+-   Case for applying data science to operations
+
+    -   nimble
+
+    -   responsive
+
+    -   quick
+
+Quarto enables you to weave together content and executable code into a finished presentation. To learn more about Quarto presentations see <https://quarto.org/docs/presentations/>.
+
+## Bullets
+
+When you click the **Render** button a document will be generated that includes:
+
+-   Content authored with markdown
+-   Output from executable code
+
+## Code
+
+When you click the **Render** button a presentation will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+## Slide {background-color="#447099"}
+
+## Slide Background {.test-background}
