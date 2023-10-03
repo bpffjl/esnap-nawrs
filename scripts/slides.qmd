@@ -1,24 +1,497 @@
 ---
 title: "Minnesota Emergency SNAP Data Story"
 author: "Ben Jaques-Leslie"
+date: today
+date-format: long
+institute: "Minnesota Department of Human Services"
 format: 
    revealjs:
      theme: [style.scss]
-     show-notes: true #separate-page
+     show-notes: false #separate-page
      slide-number: true
+     incremental: true 
+     logo: "DHS Logo RGB (Reverse)_6w.png"
+     footer: <https://mn.gov/dhs/>
+params:
+  day_start:  '2020-03-01'
+  day_end: '2023-10-01'
 ---
 
-revealjs::markdown_renderer {
-  speaker_notes_dir = "speaker_notes"
-}
+```{r set up}
+# Load two packages
+library(dplyr)
+library(stringr)
+library(odbc)
+library(tidyverse)
+library(ggthemes)
+library(MNColorrrs)
+library(epoxy)
+
+con <- dbConnect(odbc::odbc(),
+                 "Terapass",
+                 timeout = Inf,
+                 UID = keyring::key_list("data-warehouse")[1,2],
+                 PWD = keyring::key_get("data-warehouse", 
+                                        keyring::key_list("data-warehouse")[1,2]),
+                 bigint = "numeric")
+```
+
+## TLDR
+
+Data-centric view of Minnesota's Emergency SNAP program
+
+. . .
+
+Case for using data science in government
+
+::: notes
+Big picture this is my data-centric perspective of Minnesota's Emergency SNAP program. There's tons that I don't know about the program from policy, operations, and IT, but data played a major role in getting and keeping the program running.
+
+I also see our experience as a case for using data science in government. As I think you'll see, using data science principles was key to getting the program up and running.
+
+With that let's go back to March 2020.
+:::
 
 ## March 2020
 
 [![](families-first.png){fig-alt="Families First Coronavirus Response Act text about ESNAP"}](https://www.congress.gov/116/plaws/publ127/PLAW-116publ127.pdf)
 
-::: {.notes}
-I don't need to remind you what was happening in March 2020. I had two kids under 5 running around the house, while my wife and I tried to work and keep everyone safe and happy. 
+::: notes
+I don't need to remind you what was happening then. I had two kids under 5 running around the house, while my wife and I tried to work and keep everyone safe and happy. Congress passed the Families First Coronavirus Response Act, which included this section, creating Emergency SNAP.
 :::
+
+## Emergency SNAP
+
+Provide to all participants in SNAP the maximum allotment for their case size, regardless of income.
+
+::: notes
+What Emergency SNAP does is simple. Provide maximum food allotments to all eligible case regarless of income. To me it sounded like an IT problem. I knew that there wasn't a button in our mainframe eligibility/issuance system to provide maximum benefits, but I figured Minnesota's IT would be in charge.
+:::
+
+## MNIT, can you help?
+
+Yes!
+
+. . .
+
+and no.
+
+. . .
+
+We can't issue the benefits, but...
+
+. . .
+
+we can write a script that will issue benefits to common cases.
+
+::: notes
+MN SNAP team brought Minnesota's IT, called MNIT, into the discussion, asking if they could help. There answer was yes... and no... They couldn't issue the benefits. That didn't sound too good. But they could write a script to help get food assistance issued. This was a big deal, because you could image that workers would need to manually issue benefits, which would have been tons of work.
+:::
+
+## Types of cases
+
+| Cases           | SNAP | MFIP |
+|-----------------|------|------|
+| Federal funding | Yes  | Yes  |
+| State funding   | Yes  | Yes  |
+| Mixed funding   | Yes  | Yes  |
+| Cash-out        | Yes  | No   |
+
+::: notes
+Now I said that MNIT would be able to create a script to issue to common cases. What do I mean by that? In Minnesota, there are two principle programs that issue SNAP food support: SNAP and MFIP, the Minnesota Family Investment Program, which is our combined SNAP and TANF program. Now, you can categorize cases in dozens of ways, but for Emergency SNAP there are 7 types to keep in mind, mostly divided by funding. We have federally-funded cases, state-funded cases, mixed cases that receive both state and federal funds, and cash-out cases that receive food benefits as cash. MNIT's scripts would issue to all federal and state funded cases, but not the others. There were thousands of cases missing. How was the SNAP team going to do this?
+:::
+
+## Data team, can you help?
+
+Yes!
+
+. . .
+
+Not sure how, yet...
+
+. . .
+
+but yes!
+
+::: notes
+So the SNAP team came to us in the data team to help. We said yes, we will help. But we really didn't know how to do what they wanted. But we felt pretty sure that we could figure it out.
+:::
+
+## Exact request
+
+-   Spreadsheets of common cases with **no more than 500 rows and two columns**
+
+    -   Casenumber
+
+    -   Amount to maximum benefit
+
+-   Spreadsheets of other cases with more information
+
+::: notes
+Now turning to the more particular ask. To issue benefits through MNIT's scripts, the SNAP team needed speadsheets in a particular format. They could only be two columns (Casenumbers and the amount to max benefits) and could be no more than 500 rows.
+
+For less common cases, the SNAP team wanted spreadsheets that included the amounts for the different funding as well as additional data.
+
+Common cases were federal and state funded.
+
+Later on we would add new lists for stale dated warrents and participants who had passed away
+:::
+
+## Minnesota food assistance cases
+
+```{r}
+con %>%
+  tbl(sql(
+    glue::glue(
+      "SELECT
+      a.ProgramID
+      , count(DISTINCT a.CaseNumber) as cases
+FROM MaxisViews.CAFSApprovalV a --
+WHERE a.BenefitMonth < Add_Months(DATE'2020-04-01' , +1) -- will add one month to the date you enter at the prompt -- Enter month as YYYY-MM-DD (day always 01)
+    AND a.BenefitMonth >= Add_Months(DATE'2020-04-01' , -25) -- benefit month occurred less than 2 years plus one month before report month
+    AND a.DerivedEndDate > DATE'2020-04-01' -- prompt date
+    AND a.ProgramStatCode = 'A'
+    AND a.ResultCode <> 'I'
+    AND a.ProgramID in ('MF','FS') --MFIP is an example. Enter program code (i.e., DW, FS,MF, RC) here.
+    --AND a.issueongoingamount >0 -- include this qualifier if you only want cases eligible for $ in that month.
+group by a.ProgramID"
+    )
+  )) %>% 
+  collect() %>% 
+  mutate(ProgramID = fct_reorder(ProgramID,cases),
+         ProgramID = fct_recode(ProgramID,
+                                 "Minnesota Family Investment Program" = "MF",
+                                 "Supplemental Nutrition Assistance Program" = "FS")) %>% 
+  ggplot(aes(x = "", y = cases, fill = ProgramID)) +
+  geom_col(stat = "identity") +
+  geom_text(aes(label = scales::comma(cases), group = ProgramID), color = "white",
+                  position = position_stack(vjust = .5)) +
+  scale_fill_mn_state() +
+  scale_y_continuous(labels = scales::comma) +
+  theme_fivethirtyeight() +
+  labs(
+    title = "Cases in April 2020"
+  ) +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+::: notes
+Now in April 2020, Minnesota had more than 200000 cases receiving food support. The request above was going to be lots and lots of spreadsheets to issue benefits to these families.
+:::
+
+## RStudio
+
+::: columns
+::: {.column width="40%"}
+-   Code
+
+    -   SQL
+
+    -   R
+
+-   Scripts
+
+    -   .Rmd
+
+    -   .R
+:::
+
+::: {.column width="60%"}
+-   Outputs
+
+    -   Excel
+
+    -   Html reports
+:::
+:::
+
+::: notes
+So I turned to RStudio and began to work. I wrote in SQL to extract data from our data warehouse. This SQL was wrapped in R functions that allowed me to use them in different extractions. Beyond functions, I used R to wrangle the data, attach different data sets, review the results, and save the spreadsheets. I wrote in two files types: .R (mainly for functions) and .Rmd. The .Rmd files were the core part of the work that produced both html reports and the the spreadsheets.
+:::
+
+## What does the core script do?
+
+1.  Collect eligibility and budget information
+
+2.  Calculate food amount
+
+3.  Create table of maximum SNAP allotments
+
+4.  Join maximum allotments to cases
+
+5.  Calculate difference between maximum allotments
+
+6.  Remove cash-out cases
+
+7.  Save data in data warehouse
+
+8.  Produce spreadsheets
+
+::: notes
+The core script extracts the eligibility and budget information for cases in the previous month. Off of this I calculated the food amount the case received. This may seem trivial, but because of the different programs (SNAP, MFIP) and the ways that the benefit could be funded, it could get very complicated. Next I created a table of maximum SNAP allotments. This table is generally available.
+
+Along the way the script checks the data
+
+Separate scripts for SNAP and MFIP, because the budget data was stored differently
+
+Similar scripts for retroactively eligible scripts
+
+Different calculations for federal, state, and mixed cases
+
+Removed online purchasing cases
+
+Removed other OIG and FNS cases
+
+Remove intercepted cases
+:::
+
+## Retroactive eligibility
+
+-   Needed to issue emergency payments to cases found to be retroactively eligible
+
+-   How did we do that:
+
+    -   Same steps as core scripts
+
+    -   Remove cases that were already issued benefits
+
+## Monthly process
+
+1.  Execute core scripts for previous month of eligible participants
+
+2.  Create table of previous months of ESNAP
+
+3.  Iterate previous months over retroactive scripts
+
+4.  Execute other scripts
+
+5.  SNAP team gets the benefits issued
+
+    1.  Execute MNIT script for common cases
+
+    2.  Manually issue benefits for less common cases
+
+::: notes
+This goes along for about a year...
+:::
+
+## April 2021
+
+. . .
+
+\$95 minimum payment
+
+. . .
+
+Hey!
+
+. . .
+
+It's MNIT!
+
+. . .
+
+Remember how you wanted to issue benefits directly?
+
+. . .
+
+We can do that now! But...
+
+. . .
+
+**For common cases**
+
+. . .
+
+And not for retroactive cases
+
+## Adjusting the core scripts
+
+1.  Collect issuance data from MNIT
+2.  Compare to cases extracted from the data warehouse
+3.  Remove cases that were issued by MNIT
+4.  Continue with rest of the scripts
+
+## Surprises!
+
+-   Removing categorical eligibility
+
+-   Changes to SNAP allotment
+
+-   Last business day of the month
+
+-   End of new issuance
+
+## Inputs and outputs
+
+```{r}
+# Files in scripts
+files_scripts <- list.files(path = "S:/D068/TES_Research/Data Requests/REQ_1100/1197 COVID-19_SNAP_Emergency_Issuance/scripts/", recursive = T, full.names = T)
+
+# Files in output
+files_output <- list.files(path = "S:/D068/TES_Research/Data Requests/REQ_1100/1197 COVID-19_SNAP_Emergency_Issuance/output/", recursive = T, full.names = T)
+
+# .R files
+files_r <- 
+  files_scripts %>% 
+  str_subset("[.][R]$")
+
+# .Rmd files
+files_rmd <- 
+  files_scripts[grepl('.*\\.Rmd$', files_scripts)]
+
+# .html files
+files_html <- 
+  files_output[grepl('.*\\.html$', files_output)]
+
+# .html files
+files_xlsx <- 
+  files_output[grepl('.*\\.xlsx$', files_output)]
+
+prep_c_01 <-
+  c(length(files_xlsx),
+    length(files_html),
+    length(files_r),
+    length(files_rmd))
+
+prep_c_02 <-
+  c("xlsx",
+    "html",
+    "r",
+    "rmd")
+
+prep_c_03 <-
+  c("outputs",
+    "outputs",
+    "scripts",
+    "scripts")
+
+prep_d_01 <- 
+  tibble(
+    name = prep_c_02,
+    value = prep_c_01,
+    group = prep_c_03
+  ) %>% 
+  mutate(
+    name = fct_reorder(name, value)
+  )
+
+prep_c_04 <-
+  c(
+    files_r %>%
+      sapply(function(x)
+        x %>% readLines() %>% length()) %>%
+      sum(),
+    files_rmd %>%
+      sapply(function(x)
+        x %>% readLines() %>% length()) %>%
+      sum()
+  )
+
+prep_c_05 <-
+  c("r",
+    "rmd")
+
+prep_d_02 <- 
+  tibble(
+    name = prep_c_05,
+    value = prep_c_04,
+  ) %>% 
+  mutate(
+    name = fct_reorder(name, value)
+  )
+
+issu_state <- 
+  con %>%
+  tbl(
+    sql(
+      glue::glue(
+        "
+      SELECT 
+      sum(NetPaymentAmount) issuance
+      , count(distinct casenumber) as cases
+      FROM 
+      MAXISStage.ESNAP_Covid19
+      where 
+TransactionDate >= date'{params$day_start}'
+and TransactionDate <= date'{params$day_end}'
+      "
+      )
+    )
+  )  %>% 
+  collect() %>% 
+   mutate(issu_per_case = issuance/cases)
+```
+
+## Scripts
+
+```{r}
+prep_d_01 %>% 
+  filter(group == "scripts") %>% 
+   mutate(
+    name = fct_relevel(name,"r","rmd")
+  ) %>% 
+  ggplot(aes(x = name, y = value, fill = name)) +
+  geom_col(stat = "identity") +
+  geom_text(aes(y = .75*value, label = value), color = "white") +
+  scale_fill_mn_state() +
+  # theme_classic()
+  theme_fivethirtyeight() +
+  theme(
+    legend.position = "none"
+  )
+```
+
+## Lines of code
+
+```{r}
+prep_d_02 %>% 
+  mutate(
+    name = fct_relevel(name,"r","rmd")
+  ) %>% 
+  ggplot(aes(x = name, y = value, fill = name)) +
+  geom_col(stat = "identity") +
+  geom_text(aes(y = .75*value, label = scales::comma(value)), color = "white") +
+  scale_fill_mn_state() +
+  scale_y_continuous(labels = scales::comma) +
+  theme_fivethirtyeight() +
+  theme(
+    legend.position = "none"
+  )
+```
+
+## Outputs
+
+```{r}
+prep_d_01 %>%
+  filter(group == "outputs") %>%
+  #  mutate(
+  #   name = fct_relevel(name,"r","rmd")
+  # ) %>%
+  
+  ggplot(aes(x = name, y = value, fill = name)) +
+  geom_col(stat = "identity") +
+  geom_text(aes(y = .75 * value, label = scales::comma(value)), color = "white") +
+  scale_fill_mn_state() +
+  scale_y_continuous(labels = scales::comma) +
+  # theme_classic()
+  theme_fivethirtyeight() +
+  theme(legend.position = "none")
+```
+
+## Issuance
+
+```{epoxy}
+#| echo: false
+
+- As of {eaesdrrr::nice_month_year(params$day_end)}, Minnnesota Emergency SNAP issued:
+  - **roughly {.dollar issu_state$issu_per_case} per case** to
+  - **{scales::comma(issu_state$cases)} cases**, totalling
+  - **{.dollar issu_state$issuance}**
+```
 
 ## Constraints
 
