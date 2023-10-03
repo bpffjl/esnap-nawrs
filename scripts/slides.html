@@ -11,6 +11,7 @@
   <meta name="generator" content="quarto-1.3.353">
 
   <meta name="author" content="Ben Jaques-Leslie">
+  <meta name="dcterms.date" content="2023-10-03">
   <title>Minnesota Emergency SNAP Data Story</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -332,19 +333,41 @@
 <div class="quarto-title-author-name">
 Ben Jaques-Leslie 
 </div>
-</div>
+        <p class="quarto-title-affiliation">
+            Minnesota Department of Human Services
+          </p>
+    </div>
 </div>
 
+  <p class="date">October 3, 2023</p>
 </section>
-<section class="slide level2">
-
-<p>revealjs::markdown_renderer { speaker_notes_dir = “speaker_notes” }</p>
+<section id="tldr" class="slide level2">
+<h2>TLDR</h2>
+<p>Data-centric view of Minnesota’s Emergency SNAP program</p>
+<div class="fragment">
+<p>Case for using data science in government</p>
+<aside class="notes">
+<p>Big picture this is my data-centric perspective of Minnesota’s Emergency SNAP program. There’s tons that I don’t know about the program from policy, operations, and IT, but data played a major role in getting and keeping the program running.</p>
+<p>I also see our experience as a case for using data science in government. As I think you’ll see, using data science principles was key to getting the program up and running.</p>
+<p>With that let’s go back to March 2020.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
 </section>
 <section id="march-2020" class="slide level2">
 <h2>March 2020</h2>
 
 <img data-src="families-first.png" alt="Families First Coronavirus Response Act text about ESNAP" class="r-stretch quarto-figure-center"><aside class="notes">
-<p>Speaker notes go here.</p>
+<p>I don’t need to remind you what was happening then. I had two kids under 5 running around the house, while my wife and I tried to work and keep everyone safe and happy. Congress passed the Families First Coronavirus Response Act, which included this section, creating Emergency SNAP.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -357,28 +380,373 @@ Ben Jaques-Leslie
           display:block!important;
       }</style></aside>
 </section>
+<section id="emergency-snap" class="slide level2">
+<h2>Emergency SNAP</h2>
+<p>Provide to all participants in SNAP the maximum allotment for their case size, regardless of income.</p>
+<aside class="notes">
+<p>What Emergency SNAP does is simple. Provide maximum food allotments to all eligible case regarless of income. To me it sounded like an IT problem. I knew that there wasn’t a button in our mainframe eligibility/issuance system to provide maximum benefits, but I figured Minnesota’s IT would be in charge.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="mnit-can-you-help" class="slide level2">
+<h2>MNIT, can you help?</h2>
+<p>Yes!</p>
+<div class="fragment">
+<p>and no.</p>
+</div>
+<div class="fragment">
+<p>We can’t issue the benefits, but…</p>
+</div>
+<div class="fragment">
+<p>we can write a script that will issue benefits to common cases.</p>
+<aside class="notes">
+<p>MN SNAP team brought Minnesota’s IT, called MNIT, into the discussion, asking if they could help. There answer was yes… and no… They couldn’t issue the benefits. That didn’t sound too good. But they could write a script to help get food assistance issued. This was a big deal, because you could image that workers would need to manually issue benefits, which would have been tons of work.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section id="types-of-cases" class="slide level2">
+<h2>Types of cases</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Cases</th>
+<th>SNAP</th>
+<th>MFIP</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Federal funding</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr class="even">
+<td>State funding</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr class="odd">
+<td>Mixed funding</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr class="even">
+<td>Cash-out</td>
+<td>Yes</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<aside class="notes">
+<p>Now I said that MNIT would be able to create a script to issue to common cases. What do I mean by that? In Minnesota, there are two principle programs that issue SNAP food support: SNAP and MFIP, the Minnesota Family Investment Program, which is our combined SNAP and TANF program. Now, you can categorize cases in dozens of ways, but for Emergency SNAP there are 7 types to keep in mind, mostly divided by funding. We have federally-funded cases, state-funded cases, mixed cases that receive both state and federal funds, and cash-out cases that receive food benefits as cash. MNIT’s scripts would issue to all federal and state funded cases, but not the others. There were thousands of cases missing. How was the SNAP team going to do this?</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="data-team-can-you-help" class="slide level2">
+<h2>Data team, can you help?</h2>
+<p>Yes!</p>
+<div class="fragment">
+<p>Not sure how, yet…</p>
+</div>
+<div class="fragment">
+<p>but yes!</p>
+<aside class="notes">
+<p>So the SNAP team came to us in the data team to help. We said yes, we will help. But we really didn’t know how to do what they wanted. But we felt pretty sure that we could figure it out.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section id="exact-request" class="slide level2">
+<h2>Exact request</h2>
+<ul>
+<li class="fragment"><p>Spreadsheets of common cases with <strong>no more than 500 rows and two columns</strong></p>
+<ul>
+<li class="fragment"><p>Casenumber</p></li>
+<li class="fragment"><p>Amount to maximum benefit</p></li>
+</ul></li>
+<li class="fragment"><p>Spreadsheets of other cases with more information</p></li>
+</ul>
+<aside class="notes">
+<p>Now turning to the more particular ask. To issue benefits through MNIT’s scripts, the SNAP team needed speadsheets in a particular format. They could only be two columns (Casenumbers and the amount to max benefits) and could be no more than 500 rows.</p>
+<p>For less common cases, the SNAP team wanted spreadsheets that included the amounts for the different funding as well as additional data.</p>
+<p>Common cases were federal and state funded.</p>
+<p>Later on we would add new lists for stale dated warrents and participants who had passed away</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="minnesota-food-assistance-cases" class="slide level2">
+<h2>Minnesota food assistance cases</h2>
+
+<img data-src="slides_files/figure-revealjs/unnamed-chunk-1-1.png" width="960" class="r-stretch"><aside class="notes">
+<p>Now in April 2020, Minnesota had more than 200000 cases receiving food support. The request above was going to be lots and lots of spreadsheets to issue benefits to these families.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="rstudio" class="slide level2">
+<h2>RStudio</h2>
+<div class="columns">
+<div class="column" style="width:40%;">
+<ul>
+<li class="fragment"><p>Code</p>
+<ul>
+<li class="fragment"><p>SQL</p></li>
+<li class="fragment"><p>R</p></li>
+</ul></li>
+<li class="fragment"><p>Scripts</p>
+<ul>
+<li class="fragment"><p>.Rmd</p></li>
+<li class="fragment"><p>.R</p></li>
+</ul></li>
+</ul>
+</div><div class="column" style="width:60%;">
+<ul>
+<li class="fragment"><p>Outputs</p>
+<ul>
+<li class="fragment"><p>Excel</p></li>
+<li class="fragment"><p>Html reports</p></li>
+</ul></li>
+</ul>
+</div>
+</div>
+<aside class="notes">
+<p>So I turned to RStudio and began to work. I wrote in SQL to extract data from our data warehouse. This SQL was wrapped in R functions that allowed me to use them in different extractions. Beyond functions, I used R to wrangle the data, attach different data sets, review the results, and save the spreadsheets. I wrote in two files types: .R (mainly for functions) and .Rmd. The .Rmd files were the core part of the work that produced both html reports and the the spreadsheets.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="what-does-the-core-script-do" class="slide level2">
+<h2>What does the core script do?</h2>
+<ol type="1">
+<li class="fragment"><p>Collect eligibility and budget information</p></li>
+<li class="fragment"><p>Calculate food amount</p></li>
+<li class="fragment"><p>Create table of maximum SNAP allotments</p></li>
+<li class="fragment"><p>Join maximum allotments to cases</p></li>
+<li class="fragment"><p>Calculate difference between maximum allotments</p></li>
+<li class="fragment"><p>Remove cash-out cases</p></li>
+<li class="fragment"><p>Save data in data warehouse</p></li>
+<li class="fragment"><p>Produce spreadsheets</p></li>
+</ol>
+<aside class="notes">
+<p>The core script extracts the eligibility and budget information for cases in the previous month. Off of this I calculated the food amount the case received. This may seem trivial, but because of the different programs (SNAP, MFIP) and the ways that the benefit could be funded, it could get very complicated. Next I created a table of maximum SNAP allotments. This table is generally available.</p>
+<p>Along the way the script checks the data</p>
+<p>Separate scripts for SNAP and MFIP, because the budget data was stored differently</p>
+<p>Similar scripts for retroactively eligible scripts</p>
+<p>Different calculations for federal, state, and mixed cases</p>
+<p>Removed online purchasing cases</p>
+<p>Removed other OIG and FNS cases</p>
+<p>Remove intercepted cases</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="retroactive-eligibility" class="slide level2">
+<h2>Retroactive eligibility</h2>
+<ul>
+<li class="fragment"><p>Needed to issue emergency payments to cases found to be retroactively eligible</p></li>
+<li class="fragment"><p>How did we do that:</p>
+<ul>
+<li class="fragment"><p>Same steps as core scripts</p></li>
+<li class="fragment"><p>Remove cases that were already issued benefits</p></li>
+</ul></li>
+</ul>
+</section>
+<section id="monthly-process" class="slide level2">
+<h2>Monthly process</h2>
+<ol type="1">
+<li class="fragment"><p>Execute core scripts for previous month of eligible participants</p></li>
+<li class="fragment"><p>Create table of previous months of ESNAP</p></li>
+<li class="fragment"><p>Iterate previous months over retroactive scripts</p></li>
+<li class="fragment"><p>Execute other scripts</p></li>
+<li class="fragment"><p>SNAP team gets the benefits issued</p>
+<ol type="1">
+<li class="fragment"><p>Execute MNIT script for common cases</p></li>
+<li class="fragment"><p>Manually issue benefits for less common cases</p></li>
+</ol></li>
+</ol>
+<aside class="notes">
+<p>This goes along for about a year…</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="april-2021" class="slide level2">
+<h2>April 2021</h2>
+<div class="fragment">
+<p>$95 minimum payment</p>
+</div>
+<div class="fragment">
+<p>Hey!</p>
+</div>
+<div class="fragment">
+<p>It’s MNIT!</p>
+</div>
+<div class="fragment">
+<p>Remember how you wanted to issue benefits directly?</p>
+</div>
+<div class="fragment">
+<p>We can do that now! But…</p>
+</div>
+<div class="fragment">
+<p><strong>For common cases</strong></p>
+</div>
+<div class="fragment">
+<p>And not for retroactive cases</p>
+</div>
+</section>
+<section id="adjusting-the-core-scripts" class="slide level2">
+<h2>Adjusting the core scripts</h2>
+<ol type="1">
+<li class="fragment">Collect issuance data from MNIT</li>
+<li class="fragment">Compare to cases extracted from the data warehouse</li>
+<li class="fragment">Remove cases that were issued by MNIT</li>
+<li class="fragment">Continue with rest of the scripts</li>
+</ol>
+</section>
+<section id="surprises" class="slide level2">
+<h2>Surprises!</h2>
+<ul>
+<li class="fragment"><p>Removing categorical eligibility</p></li>
+<li class="fragment"><p>Changes to SNAP allotment</p></li>
+<li class="fragment"><p>Last business day of the month</p></li>
+<li class="fragment"><p>End of new issuance</p></li>
+</ul>
+</section>
+<section id="inputs-and-outputs" class="slide level2">
+<h2>Inputs and outputs</h2>
+</section>
+<section id="scripts" class="slide level2">
+<h2>Scripts</h2>
+
+<img data-src="slides_files/figure-revealjs/unnamed-chunk-3-1.png" width="960" class="r-stretch"></section>
+<section id="lines-of-code" class="slide level2">
+<h2>Lines of code</h2>
+
+<img data-src="slides_files/figure-revealjs/unnamed-chunk-4-1.png" width="960" class="r-stretch"></section>
+<section id="outputs" class="slide level2">
+<h2>Outputs</h2>
+
+<img data-src="slides_files/figure-revealjs/unnamed-chunk-5-1.png" width="960" class="r-stretch"></section>
+<section id="issuance" class="slide level2">
+<h2>Issuance</h2>
+<div class="cell">
+<ul>
+<li class="fragment">As of October 2023, Minnnesota Emergency SNAP issued:
+<ul>
+<li class="fragment"><strong>roughly $3,620.27 per case</strong> to</li>
+<li class="fragment"><strong>396,206 cases</strong>, totalling</li>
+<li class="fragment"><strong>$1,434,373,980</strong></li>
+</ul></li>
+</ul>
+</div>
+</section>
+<section id="constraints" class="slide level2">
+<h2>Constraints</h2>
+<ul>
+<li class="fragment"><p>Old mainframe eligibility system - no way to turn on maximum benefits</p></li>
+<li class="fragment"><p>Limited IT support</p></li>
+</ul>
+</section>
 <section id="overview" class="slide level2">
 <h2>Overview</h2>
 <ul>
-<li><p>context</p>
+<li class="fragment"><p>context</p>
 <ul>
-<li><p>early covid</p></li>
-<li><p>balancing working from home and 2 kiddos</p></li>
+<li class="fragment"><p>early covid</p></li>
+<li class="fragment"><p>balancing working from home and 2 kiddos</p></li>
 </ul></li>
-<li><p>Request</p>
+<li class="fragment"><p>Request</p>
 <ul>
-<li>For the department - issue maximum snap benefits to all cases regardless on income</li>
+<li class="fragment">For the department - issue maximum snap benefits to all cases regardless on income</li>
 </ul></li>
-<li><p>Constraints</p>
+<li class="fragment"><p>Constraints</p>
 <ul>
-<li><p>Old mainframe eligibility system - no way to turn on maximum benefits</p></li>
-<li><p>Limited IT support</p></li>
+<li class="fragment"><p>Old mainframe eligibility system - no way to turn on maximum benefits</p></li>
+<li class="fragment"><p>Limited IT support</p></li>
 </ul></li>
-<li><p>Case for applying data science to operations</p>
+<li class="fragment"><p>Case for applying data science to operations</p>
 <ul>
-<li><p>nimble</p></li>
-<li><p>responsive</p></li>
-<li><p>quick</p></li>
+<li class="fragment"><p>nimble</p></li>
+<li class="fragment"><p>responsive</p></li>
+<li class="fragment"><p>quick</p></li>
 </ul></li>
 </ul>
 <p>Quarto enables you to weave together content and executable code into a finished presentation. To learn more about Quarto presentations see <a href="https://quarto.org/docs/presentations/" class="uri">https://quarto.org/docs/presentations/</a>.</p>
@@ -387,8 +755,8 @@ Ben Jaques-Leslie
 <h2>Bullets</h2>
 <p>When you click the <strong>Render</strong> button a document will be generated that includes:</p>
 <ul>
-<li>Content authored with markdown</li>
-<li>Output from executable code</li>
+<li class="fragment">Content authored with markdown</li>
+<li class="fragment">Output from executable code</li>
 </ul>
 </section>
 <section id="code" class="slide level2">
@@ -405,8 +773,9 @@ Ben Jaques-Leslie
 </section>
 <section id="slide-background" class="slide level2 test-background">
 <h2>Slide Background</h2>
-<div class="footer footer-default">
 
+<img src="DHS Logo RGB (Reverse)_6w.png" class="slide-logo r-stretch"><div class="footer footer-default">
+<p><a href="https://mn.gov/dhs/" class="uri">https://mn.gov/dhs/</a></p>
 </div>
 </section>
     </div>
@@ -526,7 +895,7 @@ Ben Jaques-Leslie
         pause: true,
 
         // Flags if speaker notes should be visible to all viewers
-        showNotes: true,
+        showNotes: false,
 
         // Global override for autoplaying embedded media (null/true/false)
         autoPlayMedia: null,
