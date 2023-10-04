@@ -11,7 +11,7 @@
   <meta name="generator" content="quarto-1.3.353">
 
   <meta name="author" content="Ben Jaques-Leslie">
-  <meta name="dcterms.date" content="2023-10-03">
+  <meta name="dcterms.date" content="2023-10-04">
   <title>Minnesota Emergency SNAP Data Story</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -339,7 +339,7 @@ Ben Jaques-Leslie
     </div>
 </div>
 
-  <p class="date">October 3, 2023</p>
+  <p class="date">October 4, 2023</p>
 </section>
 <section id="tldr" class="slide level2">
 <h2>TLDR</h2>
@@ -524,7 +524,7 @@ Ben Jaques-Leslie
 <h2>Minnesota food assistance cases</h2>
 
 <img data-src="slides_files/figure-revealjs/unnamed-chunk-1-1.png" width="960" class="r-stretch"><aside class="notes">
-<p>Now in April 2020, Minnesota had more than 200000 cases receiving food support. The request above was going to be lots and lots of spreadsheets to issue benefits to these families.</p>
+<p>Now in April 2020, Minnesota had more than 200000 cases receiving food support. The request above was going to be lots and lots of spreadsheets to issue benefits to these families. And even though MNIT couldn’t issue the benefits directly, having a script to do it was going to be a huge help.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -584,13 +584,14 @@ Ben Jaques-Leslie
 <li class="fragment"><p>Calculate food amount</p></li>
 <li class="fragment"><p>Create table of maximum SNAP allotments</p></li>
 <li class="fragment"><p>Join maximum allotments to cases</p></li>
-<li class="fragment"><p>Calculate difference between maximum allotments</p></li>
-<li class="fragment"><p>Remove cash-out cases</p></li>
+<li class="fragment"><p>Calculate emergency SNAP amount</p></li>
 <li class="fragment"><p>Save data in data warehouse</p></li>
 <li class="fragment"><p>Produce spreadsheets</p></li>
 </ol>
 <aside class="notes">
-<p>The core script extracts the eligibility and budget information for cases in the previous month. Off of this I calculated the food amount the case received. This may seem trivial, but because of the different programs (SNAP, MFIP) and the ways that the benefit could be funded, it could get very complicated. Next I created a table of maximum SNAP allotments. This table is generally available.</p>
+<p>The core script extracts the eligibility and budget information for cases in the previous month. Off of this I calculated the food amount the case received. This may seem trivial, but because of the different programs (SNAP, MFIP) and the ways that the benefit could be funded, it could get very complicated. Next I created a table of maximum SNAP allotments. This table is generally available, but not structured in a useable way. I needed to added rows for larger families for example. Then I joined the table of maximum allottments to the case-level data by the number of eligible members in the household. With that I was able to calculate the extra issuance to reach the maximum. In many cases, this was simply subtracting the issued food support from the maximum allotment. For cases with mixed funding the calculation was more complicated. Next I saved the data in our data warehouse. Finally, I produced spreadsheets with MNIT’s specifications for common cases and other sheets for less common cases.</p>
+<p>These scripts were written in Rmarkdown, which braids together text and code, in this case R and SQL. There was a separate scripts for SNAP and MFIP. In addition to extracting the data, performing operations, and save the spreadsheets, the files also produced HTML reports of the process so that I had a record of data extraction and process.</p>
+<p>I’ll note that I wrote R scripts for the functions that extracted the data to make sure they remained consistent across different scripts.</p>
 <p>Along the way the script checks the data</p>
 <p>Separate scripts for SNAP and MFIP, because the budget data was stored differently</p>
 <p>Similar scripts for retroactively eligible scripts</p>
@@ -620,6 +621,19 @@ Ben Jaques-Leslie
 <li class="fragment"><p>Remove cases that were already issued benefits</p></li>
 </ul></li>
 </ul>
+<aside class="notes">
+<p>I’ve already mentioned retroactive eligibility. We wanted to make sure that cases that were found to be retroactively eligible would receive emergency SNAP for past months. To do this, I adapted the core scripts, removing cases cases that were already issued benefits to identify newly eligible cases to issue new benefits too.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section>
 <section id="monthly-process" class="slide level2">
 <h2>Monthly process</h2>
@@ -635,6 +649,9 @@ Ben Jaques-Leslie
 </ol></li>
 </ol>
 <aside class="notes">
+<p>How did we do this each month? Each month we’d execute the core scripts for MFIP and SNAP to determine ESNAP payments for participants in the previous month. Then I’d create a table of all the months from the beginning of ESNAP (March 2020) until the month before the previous month. Then I would iterated these months over the scripts for retroactive cases creating issuance spreadsheets for each month before. I’d execute other scripts that were added over time. Once all of this was done, I’d have dozens of reports and even more spreadsheets. I’d pass the spreadsheets along to the SNAP team who would do the work of issuing the benefits either through the MNIT scripts or with much great work manually for less common cases.</p>
+<p>The process up until the spreadsheets were sent to the SNAP team, was all done with an R script. The script execute the core Rmarkdown scripts and additional scripts. For the retroactive scripts, the R script iterated their execution using purrr::map.</p>
+<p>For me, all I did was execute the R script and all the files executed.</p>
 <p>This goes along for about a year…</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -670,6 +687,20 @@ Ben Jaques-Leslie
 </div>
 <div class="fragment">
 <p>And not for retroactive cases</p>
+<aside class="notes">
+<p>In April 2021, we needed to make some changes. In particular, a minimum payment of $95 was added, which fundamentally changed the calculations of the Emergency SNAP issuance.</p>
+<p>In addition, MNIT returned with some solutions for automated issuance! They could now automate the process, but it still was just for common cases and not for retroactive cases. Honestly, I didn’t event know that they were working on it. I was happy for my SNAP team colleagues, because it would save them a lot of work. For me, it meant a considerable reworking of the core scripts.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </div>
 </section>
 <section id="adjusting-the-core-scripts" class="slide level2">
@@ -678,33 +709,92 @@ Ben Jaques-Leslie
 <li class="fragment">Collect issuance data from MNIT</li>
 <li class="fragment">Compare to cases extracted from the data warehouse</li>
 <li class="fragment">Remove cases that were issued by MNIT</li>
-<li class="fragment">Continue with rest of the scripts</li>
+<li class="fragment">Calculate Emergency SNAP benefit with a $95 minimum</li>
 </ol>
+<aside class="notes">
+<p>Now the core scripts need to collect issuance data from MNIT that was accomplished through automation. This data was structured as .csv and .txt files, which needed to be handled differently from data coming from the data warehouse. After loading this data, I extracted the case data from the data warehouse and compared it to the cases issued through automation and removed cases that that had already received the issuance.</p>
+<p>I then needed to rewrite the calculations for the Emergency SNAP payment, keeping the $95 minimum in mind. For cases that received federal or state funding only, it was fairly easy to code, but mixed cases were very complicated.</p>
+<p>Again this was all accomplished in R through the core Rmarkdown files.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section>
-<section id="surprises" class="slide level2">
-<h2>Surprises!</h2>
-<ul>
-<li class="fragment"><p>Removing categorical eligibility</p></li>
-<li class="fragment"><p>Changes to SNAP allotment</p></li>
-<li class="fragment"><p>Last business day of the month</p></li>
-<li class="fragment"><p>End of new issuance</p></li>
-</ul>
-</section>
-<section id="inputs-and-outputs" class="slide level2">
-<h2>Inputs and outputs</h2>
+<section>
+<section id="inputs-and-outputs" class="title-slide slide level1 center">
+<h1>Inputs and outputs</h1>
+<aside class="notes">
+<p>As you may have guessed, I’m a quantitative data person. So I’d like to quantify all of this for you. The next few slides will give some data on the numbers of scripts, lines of code, number of reports and spreadsheets.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section>
 <section id="scripts" class="slide level2">
 <h2>Scripts</h2>
 
-<img data-src="slides_files/figure-revealjs/unnamed-chunk-3-1.png" width="960" class="r-stretch"></section>
+<img data-src="slides_files/figure-revealjs/unnamed-chunk-3-1.png" width="960" class="r-stretch"><aside class="notes">
+<p>To get the process I’ve described running and to respond to adhoc questions, I wrote at least 41 r scripts and 28 rmd scripts. I say at least because this is what I see now and I’m not sure how many I deleted.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
 <section id="lines-of-code" class="slide level2">
 <h2>Lines of code</h2>
 
-<img data-src="slides_files/figure-revealjs/unnamed-chunk-4-1.png" width="960" class="r-stretch"></section>
+<img data-src="slides_files/figure-revealjs/unnamed-chunk-4-1.png" width="960" class="r-stretch"><aside class="notes">
+<p>These r and rmd scripts amounted to a lot of code. There are more than 5000 lines of code in the r scripts and more than 16000 lines in the rmd files. As you may guess, the r scripts are considerable shorter. The r scripts were either functions, simple explorations, or scripts designed to execute rmd files. The rmd files composed the real work of the data extraction and processing. They were the core scripts that were executed monthly and produced the spreadsheets that the SNAP team needed to issue benefits.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
 <section id="outputs" class="slide level2">
 <h2>Outputs</h2>
 
-<img data-src="slides_files/figure-revealjs/unnamed-chunk-5-1.png" width="960" class="r-stretch"></section>
+<img data-src="slides_files/figure-revealjs/unnamed-chunk-5-1.png" width="960" class="r-stretch"><aside class="notes">
+<p>These scripts produced a lot of files. There were more than 1900 html files. Theses files were records of execution of the issuance scripts. And more than 9000 xlsx files. Remember each of these files needed to be either used in the MNIT script to issue benefits and used as a source to manually issuance. Our SNAP policy did so much work to get these benefits!</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
 <section id="issuance" class="slide level2">
 <h2>Issuance</h2>
 <div class="cell">
@@ -717,62 +807,79 @@ Ben Jaques-Leslie
 </ul></li>
 </ul>
 </div>
+<aside class="notes">
+<p>That’s all well and good, but what does it matter to participants. As of October 2023, Minnesota Emergency SNAP issued more than $3600 per case to more than 390000 cases. This amounts to more than $1.4 billion dollars in food support to folks in Minnesota.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section>
-<section id="constraints" class="slide level2">
-<h2>Constraints</h2>
+<section id="analysis" class="slide level2">
+<h2>Analysis</h2>
+<p>Were there disparities in how Emergency SNAP was issued by race or ethnicity?</p>
+<aside class="notes">
+<p>That’s awesome. We got a lot of food support out to families in Minnesota. But, I’m a researcher and start to get curious. Who got these benefits? Were there any racial disparities in the issuance of the benefits?</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="was-emergency-snap-equitable" class="slide level2">
+<h2>Was Emergency SNAP equitable?</h2>
+
+<img data-src="slides_files/figure-revealjs/unnamed-chunk-7-1.png" width="960" class="r-stretch"><aside class="notes">
+<p>While on average cases with BIPOC applicants received more per case in Emergency SNAP, at a per person level, these cases received much less per person than cases with white applicants. This difference persisted as we looked at whether case members were seniors, had disabilities, were families, had income. The difference remained. It’s likely a results of the non-linear increase in benefits with case size. White cases are much more likely to be single person cases than BIPOC cases.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="data-science-in-government" class="slide level2">
+<h2>Data science in government</h2>
 <ul>
-<li class="fragment"><p>Old mainframe eligibility system - no way to turn on maximum benefits</p></li>
-<li class="fragment"><p>Limited IT support</p></li>
+<li class="fragment"><p>Nimble and responsive</p></li>
+<li class="fragment"><p>Bridge between policy and IT</p></li>
+<li class="fragment"><p>Extensions to analysis</p></li>
 </ul>
-</section>
-<section id="overview" class="slide level2">
-<h2>Overview</h2>
-<ul>
-<li class="fragment"><p>context</p>
-<ul>
-<li class="fragment"><p>early covid</p></li>
-<li class="fragment"><p>balancing working from home and 2 kiddos</p></li>
-</ul></li>
-<li class="fragment"><p>Request</p>
-<ul>
-<li class="fragment">For the department - issue maximum snap benefits to all cases regardless on income</li>
-</ul></li>
-<li class="fragment"><p>Constraints</p>
-<ul>
-<li class="fragment"><p>Old mainframe eligibility system - no way to turn on maximum benefits</p></li>
-<li class="fragment"><p>Limited IT support</p></li>
-</ul></li>
-<li class="fragment"><p>Case for applying data science to operations</p>
-<ul>
-<li class="fragment"><p>nimble</p></li>
-<li class="fragment"><p>responsive</p></li>
-<li class="fragment"><p>quick</p></li>
-</ul></li>
-</ul>
-<p>Quarto enables you to weave together content and executable code into a finished presentation. To learn more about Quarto presentations see <a href="https://quarto.org/docs/presentations/" class="uri">https://quarto.org/docs/presentations/</a>.</p>
-</section>
-<section id="bullets" class="slide level2">
-<h2>Bullets</h2>
-<p>When you click the <strong>Render</strong> button a document will be generated that includes:</p>
-<ul>
-<li class="fragment">Content authored with markdown</li>
-<li class="fragment">Output from executable code</li>
-</ul>
-</section>
-<section id="code" class="slide level2">
-<h2>Code</h2>
-<p>When you click the <strong>Render</strong> button a presentation will be generated that includes both content and the output of embedded code. You can embed code like this:</p>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 2</code></pre>
-</div>
-</div>
-</section>
-<section id="slide" class="slide level2" data-background-color="#447099">
-<h2>Slide</h2>
-</section>
-<section id="slide-background" class="slide level2 test-background">
-<h2>Slide Background</h2>
+<aside class="notes">
+<p>This has been my story of Minnesota’s Emergency SNAP program. But I hope that it’s also a motivating example of how data science can be be an asset in government programs. First, this example shows that data science can be nimble and responsive in a way that other areas may find troubling. Also, data science can be a bridge between policy and IT. Our IT systems are generally old and hard to adjust. Data science is build off data and code to do analysis, but it can do some more. Data scientists need to work closer to policy to answer questions that are useful. Policy workers generally don’t have coding skills to solve some problems. But they tell me what the policies mean and what they need to implement them. Lastly, data science is generally build on quantitative research so for many of us there is a natural inclination to ask quantitative research questions.</p>
+<p>Emergency SNAP was great program and one that I’m very proud to have worked on with my colleagues in MNIT and Policy.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section></section>
+<section id="thank-you" class="title-slide slide level1 center">
+<h1>Thank you!</h1>
+<p>Ben Jaques-Leslie (benjamin.jaques-leslie@state.mn.us)</p>
 
 <img src="DHS Logo RGB (Reverse)_6w.png" class="slide-logo r-stretch"><div class="footer footer-default">
 <p><a href="https://mn.gov/dhs/" class="uri">https://mn.gov/dhs/</a></p>
