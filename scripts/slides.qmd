@@ -7,11 +7,12 @@ institute: "Minnesota Department of Human Services"
 format: 
    revealjs:
      theme: [style.scss]
-     show-notes: false #separate-page
+     show-notes: false #true separate-page
      slide-number: true
      incremental: true 
      logo: "DHS Logo RGB (Reverse)_6w.png"
      footer: <https://mn.gov/dhs/>
+     smaller: false
 params:
   day_start:  '2020-03-01'
   day_end: '2023-10-01'
@@ -34,6 +35,31 @@ con <- dbConnect(odbc::odbc(),
                  PWD = keyring::key_get("data-warehouse", 
                                         keyring::key_list("data-warehouse")[1,2]),
                  bigint = "numeric")
+
+gg_style = function(in_chart)
+{
+  
+  # theme_fivethirtyeight() +
+  # scale_y_continuous(labels = scales::comma) +
+  theme(
+    text = element_text(size = 10),
+    legend.title = element_blank(),
+    legend.position = "bottom",
+    legend.direction = "horizontal",
+    axis.text.x = element_text(angle = 0),
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    panel.background = element_rect(fill = "white"),
+    plot.background = element_rect(fill = "white"),
+    legend.background = element_rect(fill = "white"),
+    strip.background = element_rect(fill = "white"),
+    legend.key = element_rect(fill = "white"),
+    strip.text.y = element_text(angle = 0),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  )
+}
 ```
 
 ## TLDR
@@ -179,7 +205,7 @@ group by a.ProgramID"
 ```
 
 ::: notes
-Now in April 2020, Minnesota had more than 200000 cases receiving food support. The request above was going to be lots and lots of spreadsheets to issue benefits to these families.
+Now in April 2020, Minnesota had more than 200000 cases receiving food support. The request above was going to be lots and lots of spreadsheets to issue benefits to these families. And even though MNIT couldn't issue the benefits directly, having a script to do it was going to be a huge help.
 :::
 
 ## RStudio
@@ -222,16 +248,18 @@ So I turned to RStudio and began to work. I wrote in SQL to extract data from ou
 
 4.  Join maximum allotments to cases
 
-5.  Calculate difference between maximum allotments
+5.  Calculate emergency SNAP amount
 
-6.  Remove cash-out cases
+6.  Save data in data warehouse
 
-7.  Save data in data warehouse
-
-8.  Produce spreadsheets
+7.  Produce spreadsheets
 
 ::: notes
-The core script extracts the eligibility and budget information for cases in the previous month. Off of this I calculated the food amount the case received. This may seem trivial, but because of the different programs (SNAP, MFIP) and the ways that the benefit could be funded, it could get very complicated. Next I created a table of maximum SNAP allotments. This table is generally available.
+The core script extracts the eligibility and budget information for cases in the previous month. Off of this I calculated the food amount the case received. This may seem trivial, but because of the different programs (SNAP, MFIP) and the ways that the benefit could be funded, it could get very complicated. Next I created a table of maximum SNAP allotments. This table is generally available, but not structured in a useable way. I needed to added rows for larger families for example. Then I joined the table of maximum allottments to the case-level data by the number of eligible members in the household. With that I was able to calculate the extra issuance to reach the maximum. In many cases, this was simply subtracting the issued food support from the maximum allotment. For cases with mixed funding the calculation was more complicated. Next I saved the data in our data warehouse. Finally, I produced spreadsheets with MNIT's specifications for common cases and other sheets for less common cases.
+
+These scripts were written in Rmarkdown, which braids together text and code, in this case R and SQL. There was a separate scripts for SNAP and MFIP. In addition to extracting the data, performing operations, and save the spreadsheets, the files also produced HTML reports of the process so that I had a record of data extraction and process.
+
+I'll note that I wrote R scripts for the functions that extracted the data to make sure they remained consistent across different scripts.
 
 Along the way the script checks the data
 
@@ -258,6 +286,10 @@ Remove intercepted cases
 
     -   Remove cases that were already issued benefits
 
+::: notes
+I've already mentioned retroactive eligibility. We wanted to make sure that cases that were found to be retroactively eligible would receive emergency SNAP for past months. To do this, I adapted the core scripts, removing cases cases that were already issued benefits to identify newly eligible cases to issue new benefits too.
+:::
+
 ## Monthly process
 
 1.  Execute core scripts for previous month of eligible participants
@@ -275,6 +307,12 @@ Remove intercepted cases
     2.  Manually issue benefits for less common cases
 
 ::: notes
+How did we do this each month? Each month we'd execute the core scripts for MFIP and SNAP to determine ESNAP payments for participants in the previous month. Then I'd create a table of all the months from the beginning of ESNAP (March 2020) until the month before the previous month. Then I would iterated these months over the scripts for retroactive cases creating issuance spreadsheets for each month before. I'd execute other scripts that were added over time. Once all of this was done, I'd have dozens of reports and even more spreadsheets. I'd pass the spreadsheets along to the SNAP team who would do the work of issuing the benefits either through the MNIT scripts or with much great work manually for less common cases.
+
+The process up until the spreadsheets were sent to the SNAP team, was all done with an R script. The script execute the core Rmarkdown scripts and additional scripts. For the retroactive scripts, the R script iterated their execution using purrr::map.
+
+For me, all I did was execute the R script and all the files executed.
+
 This goes along for about a year...
 :::
 
@@ -308,24 +346,28 @@ We can do that now! But...
 
 And not for retroactive cases
 
+::: notes
+In April 2021, we needed to make some changes. In particular, a minimum payment of \$95 was added, which fundamentally changed the calculations of the Emergency SNAP issuance.
+
+In addition, MNIT returned with some solutions for automated issuance! They could now automate the process, but it still was just for common cases and not for retroactive cases. Honestly, I didn't event know that they were working on it. I was happy for my SNAP team colleagues, because it would save them a lot of work. For me, it meant a considerable reworking of the core scripts.
+:::
+
 ## Adjusting the core scripts
 
 1.  Collect issuance data from MNIT
 2.  Compare to cases extracted from the data warehouse
 3.  Remove cases that were issued by MNIT
-4.  Continue with rest of the scripts
+4.  Calculate Emergency SNAP benefit with a \$95 minimum
 
-## Surprises!
+::: notes
+Now the core scripts need to collect issuance data from MNIT that was accomplished through automation. This data was structured as .csv and .txt files, which needed to be handled differently from data coming from the data warehouse. After loading this data, I extracted the case data from the data warehouse and compared it to the cases issued through automation and removed cases that that had already received the issuance.
 
--   Removing categorical eligibility
+I then needed to rewrite the calculations for the Emergency SNAP payment, keeping the \$95 minimum in mind. For cases that received federal or state funding only, it was fairly easy to code, but mixed cases were very complicated.
 
--   Changes to SNAP allotment
+Again this was all accomplished in R through the core Rmarkdown files.
+:::
 
--   Last business day of the month
-
--   End of new issuance
-
-## Inputs and outputs
+# Inputs and outputs
 
 ```{r}
 # Files in scripts
@@ -426,6 +468,10 @@ and TransactionDate <= date'{params$day_end}'
    mutate(issu_per_case = issuance/cases)
 ```
 
+::: notes
+As you may have guessed, I'm a quantitative data person. So I'd like to quantify all of this for you. The next few slides will give some data on the numbers of scripts, lines of code, number of reports and spreadsheets.
+:::
+
 ## Scripts
 
 ```{r}
@@ -438,12 +484,18 @@ prep_d_01 %>%
   geom_col(stat = "identity") +
   geom_text(aes(y = .75*value, label = value), color = "white") +
   scale_fill_mn_state() +
-  # theme_classic()
   theme_fivethirtyeight() +
+  gg_style() +
   theme(
     legend.position = "none"
-  )
+  ) +
+  labs(caption = "Source: MN DHS EAESD Research Team",
+       title = "Dozens of r and rmd scripts")
 ```
+
+::: notes
+To get the process I've described running and to respond to adhoc questions, I wrote at least 41 r scripts and 28 rmd scripts. I say at least because this is what I see now and I'm not sure how many I deleted.
+:::
 
 ## Lines of code
 
@@ -458,10 +510,17 @@ prep_d_02 %>%
   scale_fill_mn_state() +
   scale_y_continuous(labels = scales::comma) +
   theme_fivethirtyeight() +
+  gg_style() +
   theme(
     legend.position = "none"
-  )
+  ) +
+  labs(caption = "Source: MN DHS EAESD Research Team",
+       title = "Thousands of lines of r code")
 ```
+
+::: notes
+These r and rmd scripts amounted to a lot of code. There are more than 5000 lines of code in the r scripts and more than 16000 lines in the rmd files. As you may guess, the r scripts are considerable shorter. The r scripts were either functions, simple explorations, or scripts designed to execute rmd files. The rmd files composed the real work of the data extraction and processing. They were the core scripts that were executed monthly and produced the spreadsheets that the SNAP team needed to issue benefits.
+:::
 
 ## Outputs
 
@@ -479,8 +538,17 @@ prep_d_01 %>%
   scale_y_continuous(labels = scales::comma) +
   # theme_classic()
   theme_fivethirtyeight() +
-  theme(legend.position = "none")
+  gg_style() +
+  theme(
+    legend.position = "none"
+  ) +
+  labs(caption = "Source: MN DHS EAESD Research Team",
+       title = "Thousands of reports and spreadsheets")
 ```
+
+::: notes
+These scripts produced a lot of files. There were more than 1900 html files. Theses files were records of execution of the issuance scripts. And more than 9000 xlsx files. Remember each of these files needed to be either used in the MNIT script to issue benefits and used as a source to manually issuance. Our SNAP policy did so much work to get these benefits!
+:::
 
 ## Issuance
 
@@ -493,55 +561,165 @@ prep_d_01 %>%
   - **{.dollar issu_state$issuance}**
 ```
 
-## Constraints
+::: notes
+That's all well and good, but what does it matter to participants. As of October 2023, Minnesota Emergency SNAP issued more than \$3600 per case to more than 390000 cases. This amounts to more than \$1.4 billion dollars in food support to folks in Minnesota.
+:::
 
--   Old mainframe eligibility system - no way to turn on maximum benefits
+## Analysis
 
--   Limited IT support
+Were there disparities in how Emergency SNAP was issued by race or ethnicity?
 
-## Overview
+::: notes
+That's awesome. We got a lot of food support out to families in Minnesota. But, I'm a researcher and start to get curious. Who got these benefits? Were there any racial disparities in the issuance of the benefits?
+:::
 
--   context
-
-    -   early covid
-
-    -   balancing working from home and 2 kiddos
-
--   Request
-
-    -   For the department - issue maximum snap benefits to all cases regardless on income
-
--   Constraints
-
-    -   Old mainframe eligibility system - no way to turn on maximum benefits
-
-    -   Limited IT support
-
--   Case for applying data science to operations
-
-    -   nimble
-
-    -   responsive
-
-    -   quick
-
-Quarto enables you to weave together content and executable code into a finished presentation. To learn more about Quarto presentations see <https://quarto.org/docs/presentations/>.
-
-## Bullets
-
-When you click the **Render** button a document will be generated that includes:
-
--   Content authored with markdown
--   Output from executable code
-
-## Code
-
-When you click the **Render** button a presentation will be generated that includes both content and the output of embedded code. You can embed code like this:
+## Was Emergency SNAP equitable?
 
 ```{r}
-1 + 1
+d_case <-
+  readRDS(
+    "C:/Users/pwbpj01/Documents/R_local/1257_SNAP_MFIP_Total_Issuance/data/report_data.rds"
+  ) %>%
+    filter(report_month < ymd('2023-03-01'))
+  
+  d_case <- 
+  d_case %>% 
+  mutate(
+    race_white = fct_recode(race_white, BIPOC = 'Non-White')
+  )
+
+# Rename factor level
+
+d_case <- 
+  d_case %>% 
+  mutate(
+    ProgramID = factor(ProgramID),
+    ProgramID = fct_recode(ProgramID, MFIP = 'MF', SNAP = 'FS')
+  )
+
+prep_2 <- 
+  d_case %>% 
+  filter(time > 1) %>%
+  # filter(race_multiple_races == 'One race') %>%
+  group_by(race_white) %>% 
+  summarise(t = mean(issue_elig_difference,na.rm = TRUE)) %>% 
+  mutate(name = 'Average increase per case') %>% 
+  bind_rows(
+    d_case %>% 
+      filter(time > 1) %>%
+      mutate(issue_elig_difference = issue_elig_difference/elig_persons) %>% 
+      # filter(race_multiple_races == 'One race') %>%
+      group_by(race_white) %>% 
+      summarise(t = mean(issue_elig_difference,na.rm = TRUE)) %>% 
+      mutate(name = 'Average increase per person')
+    
+  ) %>% 
+  mutate(name = factor(name, levels = 
+                         c('Average increase per person',
+                           'Average increase per case')))
+
+white_per_person <- 
+  prep_2 %>% 
+  filter(race_white == 'White') %>% 
+  filter(name == 'Average increase per person') %>% 
+  select(t) %>% 
+  pull() %>% 
+  scales::dollar()
+
+BIPOC_per_person <- 
+  prep_2 %>% 
+  filter(race_white != 'White') %>% 
+  filter(name == 'Average increase per person') %>% 
+  select(t) %>% 
+  pull() %>% 
+  scales::dollar()
+
+diff_per_person <- 
+  abs(prep_2 %>% 
+  filter(race_white == 'White') %>% 
+  filter(name == 'Average increase per person') %>% 
+  select(t) %>% 
+  pull() - 
+  prep_2 %>% 
+  filter(race_white != 'White') %>% 
+  filter(name == 'Average increase per person') %>% 
+  select(t) %>% 
+  pull()) %>% 
+  scales::dollar()
+
+white_per_case <- 
+  prep_2 %>% 
+  filter(race_white == 'White') %>% 
+  filter(name == 'Average increase per case') %>% 
+  select(t) %>% 
+  pull() %>% 
+  scales::dollar()
+
+BIPOC_per_case <- 
+  prep_2 %>% 
+  filter(race_white != 'White') %>% 
+  filter(name == 'Average increase per case') %>% 
+  select(t) %>% 
+  pull() %>% 
+  scales::dollar()
+
+diff_per_case <- 
+  abs(prep_2 %>% 
+  filter(race_white == 'White') %>% 
+  filter(name == 'Average increase per case') %>% 
+  select(t) %>% 
+  pull() - 
+  prep_2 %>% 
+  filter(race_white != 'White') %>% 
+  filter(name == 'Average increase per case') %>% 
+  select(t) %>% 
+  pull()) %>% 
+  scales::dollar()
+
+prep <- prep_2 %>% 
+  mutate(
+    name = fct_relabel(
+      name,
+      ~str_wrap(.,width = 15)
+    )
+  )
+
+prep %>% 
+  ggplot(aes(x= race_white, y = t, fill = race_white, label = scales::dollar(t))) +
+  geom_bar(stat = 'identity', position = 'dodge') +
+  geom_text(
+    # size = params$chart.text.size,
+    aes(y = t*.75), color = 'white') +
+  facet_grid(name~., scales = 'free') +
+  scale_fill_mn_state(palette = 'accent')+
+  scale_y_continuous(labels = scales::dollar) +
+  theme_fivethirtyeight() +
+  gg_style() +
+  theme(
+    legend.position = 'none'
+  ) +
+  labs(caption = "Source: MN DHS EAESD Research Team",
+       title = "Cases with white applicants received more per person in Emergency SNAP")
 ```
 
-## Slide {background-color="#447099"}
+::: notes
+While on average cases with BIPOC applicants received more per case in Emergency SNAP, at a per person level, these cases received much less per person than cases with white applicants. This difference persisted as we looked at whether case members were seniors, had disabilities, were families, had income. The difference remained. It's likely a results of the non-linear increase in benefits with case size. White cases are much more likely to be single person cases than BIPOC cases.
+:::
 
-## Slide Background {.test-background}
+## Data science in government
+
+-   Nimble and responsive
+
+-   Bridge between policy and IT
+
+-   Extensions to analysis
+
+::: notes
+This has been my story of Minnesota's Emergency SNAP program. But I hope that it's also a motivating example of how data science can be be an asset in government programs. First, this example shows that data science can be nimble and responsive in a way that other areas may find troubling. Also, data science can be a bridge between policy and IT. Our IT systems are generally old and hard to adjust. Data science is build off data and code to do analysis, but it can do some more. Data scientists need to work closer to policy to answer questions that are useful. Policy workers generally don't have coding skills to solve some problems. But they tell me what the policies mean and what they need to implement them. Lastly, data science is generally build on quantitative research so for many of us there is a natural inclination to ask quantitative research questions.
+
+Emergency SNAP was great program and one that I'm very proud to have worked on with my colleagues in MNIT and Policy.
+:::
+
+# Thank you!
+
+Ben Jaques-Leslie (benjamin.jaques-leslie\@state.mn.us)
