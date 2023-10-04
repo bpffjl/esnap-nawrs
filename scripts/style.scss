@@ -2,7 +2,7 @@
 
 $body-bg: #003865;
 $body-color: #fff;
-$link-color: #42affa;
+$link-color: #78BE21;
 
 /*-- scss:rules --*/
 
@@ -10,3 +10,42 @@ $link-color: #42affa;
   border-left: 3px solid $text-muted;
   padding-left: 0.5em;
 }
+
+section.slide h3 {
+  color: white !important;
+  background-color: #5D295F !important;
+  width: 200vw;
+  height: 10vw;
+  position: relative;
+  left: -20vw;
+  padding-left: 20vw;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  top: 30%;
+  /*position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);*/
+}
+
+/*
+header h4 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 3.5rem;
+  text-align: center;
+  text-transform: none;
+  background-color: rgb(146, 0, 255);
+
+}
+
+header {
+    position: relative;
+}
+
+.banner-content {
+   position: absolute;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
+}
+*/
