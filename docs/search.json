@@ -1,0 +1,149 @@
+[
+  {
+    "objectID": "scripts/slides.html#tldr",
+    "href": "scripts/slides.html#tldr",
+    "title": "Minnesota Emergency SNAP Data Story",
+    "section": "TLDR",
+    "text": "TLDR\nData-centric view of Minnesota’s Emergency SNAP program\n\nCase for using data science in government\n\nBig picture this is my data-centric perspective of Minnesota’s Emergency SNAP program. There’s tons that I don’t know about the program from policy, operations, and IT, but data played a major role in getting and keeping the program running.\nI also see our experience as a case for using data science in government. As I think you’ll see, using data science principles was key to getting the program up and running.\nWith that let’s go back to March 2020."
+  },
+  {
+    "objectID": "scripts/slides.html#march-2020",
+    "href": "scripts/slides.html#march-2020",
+    "title": "Minnesota Emergency SNAP Data Story",
+    "section": "March 2020",
+    "text": "March 2020\n\n\nI don’t need to remind you what was happening then. I had two kids under 5 running around the house, while my wife and I tried to work and keep everyone safe and happy. Congress passed the Families First Coronavirus Response Act, which included this section, creating Emergency SNAP."
+  },
+  {
+    "objectID": "scripts/slides.html#emergency-snap",
+    "href": "scripts/slides.html#emergency-snap",
+    "title": "Minnesota Emergency SNAP Data Story",
+    "section": "Emergency SNAP",
+    "text": "Emergency SNAP\nProvide to all participants in SNAP the maximum allotment for their case size, regardless of income.\n\nWhat Emergency SNAP does is simple. Provide maximum food allotments to all eligible case regarless of income. To me it sounded like an IT problem. I knew that there wasn’t a button in our mainframe eligibility/issuance system to provide maximum benefits, but I figured Minnesota’s IT would be in charge."
+  },
+  {
+    "objectID": "scripts/slides.html#mnit-can-you-help",
+    "href": "scripts/slides.html#mnit-can-you-help",
+    "title": "Minnesota Emergency SNAP Data Story",
+    "section": "MNIT, can you help?",
+    "text": "MNIT, can you help?\nYes!\n\nand no.\n\n\nWe can’t issue the benefits, but…\n\n\nwe can write a script that will issue benefits to common cases.\n\nMN SNAP team brought Minnesota’s IT, called MNIT, into the discussion, asking if they could help. There answer was yes… and no… They couldn’t issue the benefits. That didn’t sound too good. But they could write a script to help get food assistance issued. This was a big deal, because you could image that workers would need to manually issue benefits, which would have been tons of work."
+  },
+  {
+    "objectID": "scripts/slides.html#types-of-cases",
+    "href": "scripts/slides.html#types-of-cases",
+    "title": "Minnesota Emergency SNAP Data Story",
+    "section": "Types of cases",
+    "text": "Types of cases\n\n\n\nCases\nSNAP\nMFIP\n\n\n\n\nFederal funding\nYes\nYes\n\n\nState funding\nYes\nYes\n\n\nMixed funding\nYes\nYes\n\n\nCash-out\nYes\nNo\n\n\n\n\nNow I said that MNIT would be able to create a script to issue to common cases. What do I mean by that? In Minnesota, there are two principle programs that issue SNAP food support: SNAP and MFIP, the Minnesota Family Investment Program, which is our combined SNAP and TANF program. Now, you can categorize cases in dozens of ways, but for Emergency SNAP there are 7 types to keep in mind, mostly divided by funding. We have federally-funded cases, state-funded cases, mixed cases that receive both state and federal funds, and cash-out cases that receive food benefits as cash. MNIT’s scripts would issue to all federal and state funded cases, but not the others. There were thousands of cases missing. How was the SNAP team going to do this?"
+  },
+  {
+    "objectID": "scripts/slides.html#data-team-can-you-help",
+    "href": "scripts/slides.html#data-team-can-you-help",
+    "title": "Minnesota Emergency SNAP Data Story",
+    "section": "Data team, can you help?",
+    "text": "Data team, can you help?\nYes!\n\nNot sure how, yet…\n\n\nbut yes!\n\nSo the SNAP team came to us in the data team to help. Now our normal work is reports, data request, performance measures, the occasional research project. Not helping with issuance. So this was a new request to us, but we were in uncharted territory. We said yes, we will help. But we really didn’t know how to do what they wanted. But we felt pretty sure that we could figure it out."
+  },
+  {
+    "objectID": "scripts/slides.html#exact-request",
+    "href": "scripts/slides.html#exact-request",
+    "title": "Minnesota Emergency SNAP Data Story",
+    "section": "Exact request",
+    "text": "Exact request\n\nSpreadsheets of common cases with no more than 500 rows and two columns\n\nCasenumber\nAmount to maximum benefit\n\nSpreadsheets of other cases with more information\n\n\nNow turning to the more particular ask. To issue benefits through MNIT’s scripts, the SNAP team needed speadsheets in a particular format. They could only be two columns (Casenumbers and the amount to max benefits) and could be no more than 500 rows.\nFor less common cases, the SNAP team wanted spreadsheets that included the amounts for the different funding as well as additional data.\nCommon cases were federal and state funded.\nLater on we would add new lists for stale dated warrents and participants who had passed away"
+  },
+  {
+    "objectID": "scripts/slides.html#minnesota-food-assistance-cases",
+    "href": "scripts/slides.html#minnesota-food-assistance-cases",
+    "title": "Minnesota Emergency SNAP Data Story",
+    "section": "Minnesota food assistance cases",
+    "text": "Minnesota food assistance cases\n\n\nNow in April 2020, Minnesota had more than 200000 cases receiving food support. The request above was going to be lots and lots of spreadsheets to issue benefits to these families. And even though MNIT couldn’t issue the benefits directly, having a script to do it was going to be a huge help."
+  },
+  {
+    "objectID": "scripts/slides.html#rstudio",
+    "href": "scripts/slides.html#rstudio",
+    "title": "Minnesota Emergency SNAP Data Story",
+    "section": "RStudio",
+    "text": "RStudio\n\n\n\nCode\n\nSQL\nR\n\nScripts\n\n.Rmd\n.R\n\n\n\n\nOutputs\n\nExcel\nHtml reports\n\n\n\n\n\nSo I turned to RStudio and began to work. I wrote in SQL to extract data from our data warehouse. This SQL was wrapped in R functions that allowed me to use them in different extractions. Beyond functions, I used R to wrangle the data, attach different data sets, review the results, and save the spreadsheets. I wrote in two files types: .R (mainly for functions) and .Rmd. The .Rmd files were the core part of the work that produced both html reports and the the spreadsheets."
+  },
+  {
+    "objectID": "scripts/slides.html#what-does-the-core-script-do",
+    "href": "scripts/slides.html#what-does-the-core-script-do",
+    "title": "Minnesota Emergency SNAP Data Story",
+    "section": "What does the core script do?",
+    "text": "What does the core script do?\n\nCollect eligibility and budget information\nCalculate food amount\nCreate table of maximum SNAP allotments\nJoin maximum allotments to cases\nCalculate emergency SNAP amount\nSave data in data warehouse\nProduce spreadsheets\n\n\nThe core script extracts the eligibility and budget information for cases in the previous month. Off of this I calculated the food amount the case received. This may seem trivial, but because of the different programs (SNAP, MFIP) and the ways that the benefit could be funded, it could get very complicated. Next I created a table of maximum SNAP allotments. This table is generally available, but not structured in a useable way. I needed to added rows for larger families for example. Then I joined the table of maximum allottments to the case-level data by the number of eligible members in the household. With that I was able to calculate the extra issuance to reach the maximum. In many cases, this was simply subtracting the issued food support from the maximum allotment. For cases with mixed funding the calculation was more complicated. Next I saved the data in our data warehouse. Finally, I produced spreadsheets with MNIT’s specifications for common cases and other sheets for less common cases.\nThese scripts were written in Rmarkdown, which braids together text and code, in this case R and SQL. There was a separate scripts for SNAP and MFIP. In addition to extracting the data, performing operations, and save the spreadsheets, the files also produced HTML reports of the process so that I had a record of data extraction and process.\nI’ll note that I wrote R scripts for the functions that extracted the data to make sure they remained consistent across different scripts.\nAlong the way the script checks the data\nSeparate scripts for SNAP and MFIP, because the budget data was stored differently\nSimilar scripts for retroactively eligible scripts\nDifferent calculations for federal, state, and mixed cases\nRemoved online purchasing cases\nRemoved other OIG and FNS cases\nRemove intercepted cases"
+  },
+  {
+    "objectID": "scripts/slides.html#retroactive-eligibility",
+    "href": "scripts/slides.html#retroactive-eligibility",
+    "title": "Minnesota Emergency SNAP Data Story",
+    "section": "Retroactive eligibility",
+    "text": "Retroactive eligibility\n\nNeeded to issue emergency payments to cases found to be retroactively eligible\nHow did we do that:\n\nSame steps as core scripts\nRemove cases that were already issued benefits\n\n\n\nI’ve already mentioned retroactive eligibility. We wanted to make sure that cases that were found to be retroactively eligible would receive emergency SNAP for past months. To do this, I adapted the core scripts, removing cases cases that were already issued benefits to identify newly eligible cases to issue new benefits too."
+  },
+  {
+    "objectID": "scripts/slides.html#monthly-process",
+    "href": "scripts/slides.html#monthly-process",
+    "title": "Minnesota Emergency SNAP Data Story",
+    "section": "Monthly process",
+    "text": "Monthly process\n\nExecute core scripts for previous month of eligible participants\nCreate table of previous months of ESNAP\nIterate previous months over retroactive scripts\nExecute other scripts\nSNAP team gets the benefits issued\n\nExecute MNIT script for common cases\nManually issue benefits for less common cases\n\n\n\nHow did we do this each month? Each month we’d execute the core scripts for MFIP and SNAP to determine ESNAP payments for participants in the previous month. Then I’d create a table of all the months from the beginning of ESNAP (March 2020) until the month before the previous month. Then I would iterated these months over the scripts for retroactive cases creating issuance spreadsheets for each month before. I’d execute other scripts that were added over time. Once all of this was done, I’d have dozens of reports and even more spreadsheets. I’d pass the spreadsheets along to the SNAP team who would do the work of issuing the benefits either through the MNIT scripts or with much great work manually for less common cases.\nThe process up until the spreadsheets were sent to the SNAP team, was all done with an R script. The script execute the core Rmarkdown scripts and additional scripts. For the retroactive scripts, the R script iterated their execution using purrr::map.\nFor me, all I did was execute the R script and all the files executed.\nThis goes along for about a year…"
+  },
+  {
+    "objectID": "scripts/slides.html#april-2021",
+    "href": "scripts/slides.html#april-2021",
+    "title": "Minnesota Emergency SNAP Data Story",
+    "section": "April 2021",
+    "text": "April 2021\n\n$95 minimum payment\n\n\nHey!\n\n\nIt’s MNIT!\n\n\nRemember how you wanted to issue benefits directly?\n\n\nWe can do that now! But…\n\n\nFor common cases\n\n\nAnd not for retroactive cases\n\nIn April 2021, we needed to make some changes. In particular, a minimum payment of $95 was added, which fundamentally changed the calculations of the Emergency SNAP issuance.\nIn addition, MNIT returned with some solutions for automated issuance! They could now automate the process, but it still was just for common cases and not for retroactive cases. Honestly, I didn’t event know that they were working on it. I was happy for my SNAP team colleagues, because it would save them a lot of work. For me, it meant a considerable reworking of the core scripts."
+  },
+  {
+    "objectID": "scripts/slides.html#adjusting-the-core-scripts",
+    "href": "scripts/slides.html#adjusting-the-core-scripts",
+    "title": "Minnesota Emergency SNAP Data Story",
+    "section": "Adjusting the core scripts",
+    "text": "Adjusting the core scripts\n\nCollect issuance data from MNIT\nCompare to cases extracted from the data warehouse\nRemove cases that were issued by MNIT\nCalculate Emergency SNAP benefit with a $95 minimum\n\n\nNow the core scripts need to collect issuance data from MNIT that was accomplished through automation. This data was structured as .csv and .txt files, which needed to be handled differently from data coming from the data warehouse. After loading this data, I extracted the case data from the data warehouse and compared it to the cases issued through automation and removed cases that that had already received the issuance.\nI then needed to rewrite the calculations for the Emergency SNAP payment, keeping the $95 minimum in mind. For cases that received federal or state funding only, it was fairly easy to code, but mixed cases were very complicated.\nAgain this was all accomplished in R through the core Rmarkdown files."
+  },
+  {
+    "objectID": "scripts/slides.html#scripts",
+    "href": "scripts/slides.html#scripts",
+    "title": "Minnesota Emergency SNAP Data Story",
+    "section": "Scripts",
+    "text": "Scripts\n\n\nTo get the process I’ve described running and to respond to adhoc questions, I wrote at least 41 r scripts and 28 rmd scripts. I say at least because this is what I see now and I’m not sure how many I deleted."
+  },
+  {
+    "objectID": "scripts/slides.html#lines-of-code",
+    "href": "scripts/slides.html#lines-of-code",
+    "title": "Minnesota Emergency SNAP Data Story",
+    "section": "Lines of code",
+    "text": "Lines of code\n\n\nThese r and rmd scripts amounted to a lot of code. There are more than 5000 lines of code in the r scripts and more than 16000 lines in the rmd files. As you may guess, the r scripts are considerable shorter. The r scripts were either functions, simple explorations, or scripts designed to execute rmd files. The rmd files composed the real work of the data extraction and processing. They were the core scripts that were executed monthly and produced the spreadsheets that the SNAP team needed to issue benefits."
+  },
+  {
+    "objectID": "scripts/slides.html#outputs",
+    "href": "scripts/slides.html#outputs",
+    "title": "Minnesota Emergency SNAP Data Story",
+    "section": "Outputs",
+    "text": "Outputs\n\n\nThese scripts produced a lot of files. There were more than 1900 html files. Theses files were records of execution of the issuance scripts. And more than 9000 xlsx files. Remember each of these files needed to be either used in the MNIT script to issue benefits and used as a source to manually issuance. Our SNAP policy did so much work to get these benefits!"
+  },
+  {
+    "objectID": "scripts/slides.html#issuance",
+    "href": "scripts/slides.html#issuance",
+    "title": "Minnesota Emergency SNAP Data Story",
+    "section": "Issuance",
+    "text": "Issuance\n\n\nAs of October 2023, Minnnesota Emergency SNAP issued:\n\nroughly $3,620.27 per case to\n396,206 cases, totalling\n$1,434,373,980\n\n\n\n\nThat’s all well and good, but what does it matter to participants. As of October 2023, Minnesota Emergency SNAP issued more than $3600 per case to more than 390000 cases. This amounts to more than $1.4 billion dollars in food support to folks in Minnesota."
+  },
+  {
+    "objectID": "scripts/slides.html#analysis",
+    "href": "scripts/slides.html#analysis",
+    "title": "Minnesota Emergency SNAP Data Story",
+    "section": "Analysis",
+    "text": "Analysis\nWere there disparities in how Emergency SNAP was issued by race or ethnicity?\n\nThat’s awesome. We got a lot of food support out to families in Minnesota. But, I’m a researcher and start to get curious. Who got these benefits? Were there any racial disparities in the issuance of the benefits?"
+  },
+  {
+    "objectID": "scripts/slides.html#was-emergency-snap-equitable",
+    "href": "scripts/slides.html#was-emergency-snap-equitable",
+    "title": "Minnesota Emergency SNAP Data Story",
+    "section": "Was Emergency SNAP equitable?",
+    "text": "Was Emergency SNAP equitable?\n\n\nWhile on average cases with BIPOC applicants received more per case in Emergency SNAP, at a per person level, these cases received much less per person than cases with white applicants. This difference persisted as we looked at whether case members were seniors, had disabilities, were families, had income. The difference remained. It’s likely a results of the non-linear increase in benefits with case size. White cases are much more likely to be single person cases than BIPOC cases."
+  },
+  {
+    "objectID": "scripts/slides.html#data-science-in-government",
+    "href": "scripts/slides.html#data-science-in-government",
+    "title": "Minnesota Emergency SNAP Data Story",
+    "section": "Data science in government",
+    "text": "Data science in government\n\nNimble and responsive\nBridge between policy and IT\nExtensions to analysis\n\n\nThis has been my story of Minnesota’s Emergency SNAP program. But I hope that it’s also a motivating example of how data science can be be an asset in government programs. First, this example shows that data science can be nimble and responsive in a way that other areas may find troubling. Also, data science can be a bridge between policy and IT. Our IT systems are generally old and hard to adjust. Data science is build off data and code to do analysis, but it can do some more. Data scientists need to work closer to policy to answer questions that are useful. Policy workers generally don’t have coding skills to solve some problems. But they tell me what the policies mean and what they need to implement them. Lastly, data science is generally build on quantitative research so for many of us there is a natural inclination to ask quantitative research questions.\nEmergency SNAP was great program and one that I’m very proud to have worked on with my colleagues in MNIT and Policy."
+  }
+]
